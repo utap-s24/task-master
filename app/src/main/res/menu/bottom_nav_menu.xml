@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item
-        android:id="@+id/navigation_simple"
-        android:title="Tasks" />
-
+        android:id="@+id/navigation_task_list"
+        android:title="Task List" />
     <item
-        android:id="@+id/navigation_select"
+        android:id="@+id/navigation_today"
         android:title="Today's Tasks" />
-
     <item
-        android:id="@+id/navigation_favorites"
+        android:id="@+id/navigation_user"
         android:title="User" />
-
 </menu>
