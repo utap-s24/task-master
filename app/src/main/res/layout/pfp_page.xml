@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Layout for the user profile page -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,82 +10,92 @@
         android:id="@+id/btnSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
-        android:text="Settings" />
+        android:text="Settings"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Profile Picture placeholder -->
     <ImageView
         android:id="@+id/imgProfilePicture"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="24dp"
-        android:src="" />
+        android:src=""
+        app:layout_constraintTop_toBottomOf="@+id/btnSettings"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Username dynamically retrieved from Firebase -->
     <TextView
         android:id="@+id/txtUsername"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/imgProfilePicture"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
-        android:text="Username: " />
+        android:text="Username: "
+        app:layout_constraintTop_toBottomOf="@+id/imgProfilePicture"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Tasks Completed Label -->
     <TextView
         android:id="@+id/txtTasksCompletedLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtUsername"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
-        android:text="# Tasks Completed" />
+        android:text="# Tasks Completed"
+        app:layout_constraintTop_toBottomOf="@+id/txtUsername"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Tasks Completed Count -->
     <TextView
         android:id="@+id/txtTasksCompleted"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtTasksCompletedLabel"
-        android:layout_centerHorizontal="true"
-        android:text="0" />
+        app:layout_constraintTop_toBottomOf="@+id/txtTasksCompletedLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Tasks Remaining Label -->
     <TextView
         android:id="@+id/txtTasksRemainingLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtTasksCompleted"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="30dp"
-        android:text="# Remaining" />
+        android:text="# Remaining"
+        app:layout_constraintTop_toBottomOf="@+id/txtTasksCompleted"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Tasks Remaining Count -->
     <TextView
         android:id="@+id/txtTasksRemaining"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtTasksRemainingLabel"
-        android:layout_centerHorizontal="true"
-        android:text="0" />
+        app:layout_constraintTop_toBottomOf="@+id/txtTasksRemainingLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Logout Button -->
     <Button
         android:id="@+id/btnLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/txtTasksRemaining"
-        android:layout_centerHorizontal="true"
         android:layout_marginTop="24dp"
-        android:text="LOGOUT" />
+        android:text="LOGOUT"
+        app:layout_constraintTop_toBottomOf="@+id/txtTasksRemaining"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Bottom Navigation View -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        app:menu="@menu/bottom_nav_menu" /> <!-- Menu resource file for bottom navigation items -->
-</RelativeLayout>
+        android:layout_marginTop="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
