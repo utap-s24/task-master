@@ -3,17 +3,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/taskFragment">
+    app:startDestination="@id/WelcomeFragment"> <!-- Set the startDestination to welcomeFragment -->
 
-    <!-- Navigation places the label in the Toolbar -->
+    <!-- Add the fragment representing the welcome_page.xml -->
     <fragment
-        android:id="@+id/taskFragment"
+        android:id="@+id/WelcomeFragment"
+        android:name="com.example.taskmaster.WelcomeFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/welcome_fragment" >
+        <action
+            android:id="@+id/action_WelcomeFragment_to_RegisterFragment"
+            app:destination="@id/RegisterFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_homeFragment"
+            app:destination="@id/TaskFragment"
+            app:popUpTo="@id/WelcomeFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/RegisterFragment"
+        android:name="com.example.taskmaster.RegisterFragment"
+        android:label="RegisterFragment" >
+        <action
+            android:id="@+id/action_registerFragment_to_welcomeFragment"
+            app:destination="@id/WelcomeFragment" />
+    </fragment>
+
+    <!-- Other fragments -->
+    <fragment
+        android:id="@+id/TaskFragment"
         android:name="com.example.taskmaster.TaskFragment"
         android:label="Task View"
         tools:layout="@layout/task_fragment" />
 
     <fragment
-        android:id="@+id/settingsFragment"
+        android:id="@+id/SettingsFragment"
         android:name="com.example.taskmaster.SettingsFragment"
         android:label="Settings"
         tools:layout="@layout/settings_fragment" />

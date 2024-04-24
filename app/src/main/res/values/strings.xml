@@ -3,4 +3,11 @@
     <string name="action_settings">Settings</string>
     <string name="sort_prompt">Sort</string>
     <string name="category_prompt">Category</string>
+    <string name="login">Login</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="email" />
+    <string name="password" />
+    <string name="sign_in" />
+    <string name="dont_have_an_account_yet" />
+    <string name="have_an_account">Have an account?</string>
 </resources>
