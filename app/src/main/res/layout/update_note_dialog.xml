@@ -9,7 +9,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/create_note"
+        android:text="@string/update_note"
         android:textSize="26sp"
         android:textColor="@color/black"
         android:textStyle="bold"
@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent"/>
 
     <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/btnCreate"
+        android:id="@+id/btnUpdate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/ic_tick"
@@ -33,7 +33,6 @@
         android:layout_marginTop="50dp"
         android:textColor="@color/black"
         android:inputType="text"
-        android:hint="@string/title"
         android:maxLength="30"
         android:textColorHint="@android:color/darker_gray"
         android:background="@drawable/bg_edit_text"
@@ -47,11 +46,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
         android:textColor="@color/black"
-        android:inputType="textMultiLine"
-        android:hint="@string/enter_your_note"
-        android:lines="6"
         android:textColorHint="@android:color/darker_gray"
         android:background="@drawable/bg_edit_text"
+        android:inputType="textMultiLine"
+        android:lines="6"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/etTitle"/>

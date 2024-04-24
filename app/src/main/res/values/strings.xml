@@ -10,4 +10,9 @@
     <string name="sign_in" />
     <string name="dont_have_an_account_yet" />
     <string name="have_an_account">Have an account?</string>
+    <string name="priority">Priority</string>
+    <string name="create_note" />
+    <string name="title" />
+    <string name="enter_your_note" />
+    <string name="update_note" />
 </resources>
