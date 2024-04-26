@@ -16,6 +16,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
@@ -26,6 +27,7 @@ import com.example.taskmaster.R
 import com.example.taskmaster.SharedPreferences
 import com.example.taskmaster.SwipeGesture
 import com.example.taskmaster.data.FirestoreRepository
+import com.example.taskmaster.data.FirestoreRepositoryImpl
 import com.example.taskmaster.data.Note
 import com.example.taskmaster.data.RequestState
 import com.example.taskmaster.databinding.TaskFragmentBinding
@@ -35,14 +37,30 @@ import com.example.taskmaster.usecase.CreateNoteUseCase
 import com.example.taskmaster.usecase.DeleteNoteUseCase
 import com.example.taskmaster.usecase.GetNotesUseCase
 import com.example.taskmaster.usecase.UpdateNoteUseCase
+import com.google.firebase.firestore.FirebaseFirestore
 
 class HomeFragment : Fragment() {
 
     private lateinit var binding: TaskFragmentBinding
     private lateinit var notesList: ArrayList<Note>
 
-    private lateinit var auth: FirebaseAuth
-    private val homeViewModel: HomeViewModel by viewModels()
+    // Use a single instance of FirebaseAuth
+    private val auth by lazy { FirebaseAuth.getInstance() }
+
+    // Use the 'auth' instance to instantiate FirestoreRepositoryImpl
+    private val firestoreRepositoryImpl = FirestoreRepositoryImpl(FirebaseFirestore.getInstance(), auth)
+
+    // Now use the firestoreRepositoryImpl to create your use cases
+    private val createNoteUseCase = CreateNoteUseCase(firestoreRepositoryImpl)
+    private val getNotesUseCase = GetNotesUseCase(firestoreRepositoryImpl)
+    private val updateNoteUseCase = UpdateNoteUseCase(firestoreRepositoryImpl)
+    private val deleteNoteUseCase = DeleteNoteUseCase(firestoreRepositoryImpl)
+
+    // Create the ViewModel factory with your use cases
+    private val factory = HomeViewModelFactory(createNoteUseCase, getNotesUseCase, updateNoteUseCase, deleteNoteUseCase)
+
+    // Use the factory to create the ViewModel
+    private val homeViewModel by lazy { ViewModelProvider(this, factory).get(HomeViewModel::class.java) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -78,11 +96,10 @@ class HomeFragment : Fragment() {
         alertDialogBuilder.setTitle("Logout")
         alertDialogBuilder.setMessage("Are you sure you want to exit?")
         alertDialogBuilder.setPositiveButton("Yes") { _, _ ->
-            auth.signOut()
+            auth.signOut() // Use the single 'auth' instance
             findNavController().navigate(R.id.action_WelcomeFragment_to_loginFragment)
         }
         alertDialogBuilder.setNegativeButton("Cancel") { _, _ -> }
-
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }
@@ -157,7 +174,7 @@ class HomeFragment : Fragment() {
             if (title.isEmpty() || description.isEmpty()) {
                 Toast.makeText(context, "Please check the fields", Toast.LENGTH_SHORT).show()
             } else {
-                homeViewModel.createNote(Note(auth.uid, title, description))
+                homeViewModel.createNote(Note(auth.uid, title, description)) // Use the single 'auth' instance
                 getNotes()
                 mBuilder.dismiss()
             }
