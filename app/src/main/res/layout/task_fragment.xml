@@ -28,6 +28,19 @@
         app:layout_constraintStart_toEndOf="@id/ivlogo"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnCreateItem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
+        android:backgroundTint="@color/pinky"
+        app:borderWidth="5dp"
+        android:src="@drawable/ic_plus"
+        app:layout_constraintTop_toTopOf="@id/ivLogout"
+        app:layout_constraintBottom_toBottomOf="@id/ivLogout"
+        app:layout_constraintEnd_toStartOf="@id/ivLogout"
+        app:tint="@color/white" />
+
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/ivLogout"
         android:layout_width="40dp"
@@ -177,15 +190,15 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnCreateItem"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="40dp"
-        android:backgroundTint="@color/black"
-        android:src="@drawable/ic_plus"
-        app:layout_anchorGravity="end|bottom"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:tint="@color/white" />
+<!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+<!--        android:id="@+id/btnCreateItem"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_margin="40dp"-->
+<!--        android:backgroundTint="@color/black"-->
+<!--        android:src="@drawable/ic_plus"-->
+<!--        app:layout_anchorGravity="end|bottom"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:tint="@color/white" />-->
 </androidx.constraintlayout.widget.ConstraintLayout>
