@@ -35,33 +35,6 @@ class ToDoListRecyclerAdapter(
                 }
             }
         }
-
-
-        private fun initCheckboxListener(note: Note) {
-            with(binding) {
-//                checkbox.setOnClickListener {
-//                    setPaintFlag(checkbox.isChecked)
-//                    note.id?.let { it ->
-//                        SharedPreferences(context).putCheckboxBoolean(
-//                            "$it*",
-//                            checkbox.isChecked
-//                        )
-//                    }
-//                }
-            }
-        }
-
-        private fun setPaintFlag(isChecked: Boolean) {
-            with(binding) {
-                if (isChecked) {
-                    tvTitle.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
-                    taskCategory.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
-                } else {
-                    tvTitle.paintFlags = Paint.ANTI_ALIAS_FLAG
-                    taskCategory.paintFlags = Paint.ANTI_ALIAS_FLAG
-                }
-            }
-        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

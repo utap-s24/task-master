@@ -42,6 +42,27 @@ class FirestoreRepositoryImpl constructor(
         return def.await()
     }
 
+     override suspend fun getTodaysNotes(currentDate: String): ArrayList<Note> {
+         val todayList: ArrayList<Note> = arrayListOf()
+         val def = CompletableDeferred<ArrayList<Note>>()
+         auth.uid?.let { uid ->
+             firebaseFirestore.collection(USERS).document(uid).collection(NOTES).whereEqualTo("date", currentDate)
+                 .get()
+                 .addOnCompleteListener {
+                     if (it.isSuccessful) it.result.let { note ->
+                         val notesDocuments = note.documents
+                         notesDocuments.forEach { noteDocument ->
+                             val note = Note(noteDocument.id, noteDocument.getString("title"), noteDocument.getString("date"),
+                                 noteDocument.getString("category"), noteDocument.getString("priority"))
+                             todayList.add(note)
+                         }
+                         def.complete(todayList)
+                     }
+                 }
+         }
+         return def.await()
+    }
+
     override suspend fun updateNote(note: Note) {
         auth.uid?.let {
             note.id?.let { it1 ->

@@ -217,10 +217,6 @@ class HomeFragment : Fragment() {
             note.priority.toString(),
             TextView.BufferType.EDITABLE
         )
-//        descriptionEditText.setText(
-//            note.description.toString(),
-//            TextView.BufferType.EDITABLE
-//        )
         createButton.setOnClickListener {
             val title = titleEditText.text.toString()
             val date = dateEditText.text.toString()
