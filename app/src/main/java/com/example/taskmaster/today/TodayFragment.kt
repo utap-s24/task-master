@@ -1,6 +1,7 @@
 package com.example.taskmaster.today
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -32,11 +33,18 @@ import com.example.taskmaster.usecase.GetTodaysNotesUseCase
 import com.example.taskmaster.usecase.UpdateNoteUseCase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.Response
+import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import retrofit2.http.GET
+import retrofit2.http.Query
+
 
 class TodayFragment : Fragment() {
     private lateinit var binding: FragmentTodayBinding
@@ -61,6 +69,16 @@ class TodayFragment : Fragment() {
 
     // Use the factory to create the ViewModel
     private val todayViewModel by lazy { ViewModelProvider(this, factory).get(TodayViewModel::class.java) }
+    private val weatherApiBaseUrl = "https://api.open-meteo.com/"
+
+    // Retrofit service instance
+    private val weatherService by lazy {
+        Retrofit.Builder()
+            .baseUrl(weatherApiBaseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(WeatherService::class.java)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -73,6 +91,7 @@ class TodayFragment : Fragment() {
             "Welcome ${SharedPreferences(requireContext()).getUsernameString()}!"
         initListeners()
         getNotes()
+        fetchWeatherData()
 //        onBackPressed()
 
         return binding.root
@@ -163,5 +182,98 @@ class TodayFragment : Fragment() {
     private fun isSameDay(date1: String, date2: String): Boolean {
         return date1 == date2
     }
+    private fun fetchWeatherData() {
+        val sharedPref = requireActivity().getSharedPreferences(
+            getString(R.string.preference_file_key), Context.MODE_PRIVATE
+        )
+        val defaultLatLon = 0f // Default value if prefs not found
+        val latitude = sharedPref.getFloat(getString(R.string.saved_latitude_key), defaultLatLon)
+        val longitude = sharedPref.getFloat(getString(R.string.saved_longitude_key), defaultLatLon)
+
+        Log.d("TodayFragment", "Latitude: $latitude, Longitude: $longitude")
+
+        if (latitude != defaultLatLon && longitude != defaultLatLon) {
+            // Now you have the actual lat and lon
+            lifecycleScope.launch {
+                try {
+                    val response = weatherService.getCurrentWeather(
+                        lat = latitude.toDouble(),
+                        lon = longitude.toDouble(),
+                        current = "temperature_2m,weather_code",
+                        hourly = "temperature_2m,weather_code"
+                    )
+                    if (response.isSuccessful) {
+                        response.body()?.let {
+                            Log.d("TodayFragment", "Weather Data Retrieved: $it")
+                            it.currentWeather?.let { weather ->
+                                updateWeatherUI(weather)
+                            } ?: Log.d("TodayFragment", "currentWeather is null")
+                        } ?: Log.d("TodayFragment", "Response body is null")
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("TodayFragment", "Failed to fetch weather data: $errorBody")
+                    }
+                } catch (e: Exception) {
+                    Log.e("TodayFragment", "Error fetching weather data", e)
+                }
+            }
+        } else {
+            Log.e("TodayFragment", "No location data available")
+            // Handle the case where location data is not available...
+        }
+    }
+
+    private fun updateWeatherUI(weather: CurrentWeather) {
+        // Assuming you have ImageView for weather icons and TextViews for temperature & description
+        val weatherDescription = mapWeatherCodeToDescription(weather.weather_code)
+        Log.d("TodayFragment", "Weather Description: $weatherDescription")
+        binding.weatherTemperature.text = "${weather.temperature_2m}°C"
+        binding.weatherDescription.text = weatherDescription
+        // Set weather icon based on weather code
+        binding.weatherIcon.setImageResource(mapWeatherCodeToIcon(weather.weather_code))
+    }
+    private fun mapWeatherCodeToDescription(code: Int): String {
+        // Map the weather code to a weather description
+        return when (code) {
+            0 -> "Clear sky"
+            1 -> "Mainly clear"
+            2 -> "Partly cloudy"
+            3 -> "Overcast"
+            // Add other cases as per Open-Meteo documentation
+            else -> "Unknown"
+        }
+    }
+    private fun mapWeatherCodeToIcon(code: Int): Int {
+        // Map the weather code to an icon resource
+        return when (code) {
+            0 -> R.drawable.ic_clear_sky
+            1 -> R.drawable.ic_clear_sky //ic_mainly_clear
+            2 -> R.drawable.ic_clear_sky //ic_partly_cloudy
+            3 -> R.drawable.ic_clear_sky //ic_overcast
+            // Add other cases and icons as needed
+            else -> R.drawable.ic_clear_sky //ic_unknown_weather
+        }
+    }
+
     // Here you can set up any specific logic for this fragment, such as loading today's tasks
+    // Retrofit interface
+    interface WeatherService {
+        @GET("v1/forecast")
+        suspend fun getCurrentWeather(
+            @Query("latitude") lat: Double,
+            @Query("longitude") lon: Double,
+            @Query("current") current: String,
+            @Query("hourly") hourly: String
+        ): Response<WeatherResponse>
+    }
+
+    data class WeatherResponse(
+        @SerializedName("current_weather")
+        val currentWeather: CurrentWeather
+    )
+
+    data class CurrentWeather(
+        @SerializedName("temperature_2m") val temperature_2m: Double,
+        @SerializedName("weather_code") val weather_code: Int
+    )
 }

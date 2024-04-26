@@ -16,4 +16,7 @@
     <string name="enter_your_note" />
     <string name="update_note" />
     <string name="username_format">Username: %s</string>
+    <string name="saved_latitude_key">saved_latitude</string>
+    <string name="saved_longitude_key">saved_longitude</string>
+    <string name="preference_file_key" />
 </resources>
