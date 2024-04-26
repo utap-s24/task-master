@@ -6,20 +6,29 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.taskmaster.R
+import com.example.taskmaster.SharedPreferences
+import com.example.taskmaster.databinding.FragmentTodayBinding
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 class TodayFragment : Fragment() {
-
+    private lateinit var binding: FragmentTodayBinding
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
+    ): View {
+        binding = FragmentTodayBinding.inflate(inflater)
 
-        return inflater.inflate(R.layout.fragment_today, container, false)
+
+        binding.tvWelcome.text =
+            "Welcome ${SharedPreferences(requireContext()).getUsernameString()}!"
+//        initListeners()
+//        getNotes()
+//        onBackPressed()
+
+        return binding.root
     }
 
     private fun getCurrentDate(): String {

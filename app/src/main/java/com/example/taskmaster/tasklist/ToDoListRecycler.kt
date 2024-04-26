@@ -29,22 +29,9 @@ class ToDoListRecyclerAdapter(
                 tvTitle.text = note.title
                 tvDueDate.text = note.date
                 taskCategory.text = note.category
-                if (note.priority == "Yes") {
-                    checkbox.isChecked = true
-                    setPaintFlag(isChecked = true)
-                } else {
-                    checkbox.isChecked = false
-                    setPaintFlag(isChecked = false)
-                }
+                priorityText.text = note.priority
                 clItem.setOnClickListener {
                     onClickListener.onClick(adapterPosition)
-                }
-                initCheckboxListener(note)
-                val isChecked =
-                    note.id?.let { SharedPreferences(context).getCheckboxBoolean("$it*") }
-                if (isChecked != null) {
-                    checkbox.isChecked = isChecked
-                    setPaintFlag(isChecked)
                 }
             }
         }
@@ -52,15 +39,15 @@ class ToDoListRecyclerAdapter(
 
         private fun initCheckboxListener(note: Note) {
             with(binding) {
-                checkbox.setOnClickListener {
-                    setPaintFlag(checkbox.isChecked)
-                    note.id?.let { it ->
-                        SharedPreferences(context).putCheckboxBoolean(
-                            "$it*",
-                            checkbox.isChecked
-                        )
-                    }
-                }
+//                checkbox.setOnClickListener {
+//                    setPaintFlag(checkbox.isChecked)
+//                    note.id?.let { it ->
+//                        SharedPreferences(context).putCheckboxBoolean(
+//                            "$it*",
+//                            checkbox.isChecked
+//                        )
+//                    }
+//                }
             }
         }
 

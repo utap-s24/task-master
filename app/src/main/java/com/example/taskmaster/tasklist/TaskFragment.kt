@@ -177,7 +177,7 @@ class HomeFragment : Fragment() {
             val category = categoryEditText.text.toString()
             val priority = priorityEditText.text.toString()
 
-            if (title.isEmpty() || category.isEmpty()) {
+            if (title.isEmpty() || date.isEmpty() || category.isEmpty() || priority.isEmpty()) {
                 Toast.makeText(context, "Please check the fields", Toast.LENGTH_SHORT).show()
             } else {
                 homeViewModel.createNote(Note(auth.uid, title, date, category, priority)) // Use the single 'auth' instance
@@ -192,12 +192,29 @@ class HomeFragment : Fragment() {
         val mDialogView = LayoutInflater.from(context).inflate(R.layout.update_note_dialog, null)
         val mBuilder = AlertDialog.Builder(context).setView(mDialogView).show()
 
-        val createButton = mDialogView.findViewById<AppCompatImageView>(R.id.btnUpdate)
+        val createButton = mDialogView.findViewById<AppCompatImageView>(R.id.btnCreate)
         val titleEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etTitle)
-        val descriptionEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDescription)
+        val categoryEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etCategory)
+        val dateEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDate)
+        val priorityEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etPriority)
 
         titleEditText.setText(
             note.title.toString(),
+            TextView.BufferType.EDITABLE
+        )
+
+        dateEditText.setText(
+            note.date.toString(),
+            TextView.BufferType.EDITABLE
+        )
+
+        categoryEditText.setText(
+            note.category.toString(),
+            TextView.BufferType.EDITABLE
+        )
+
+        priorityEditText.setText(
+            note.priority.toString(),
             TextView.BufferType.EDITABLE
         )
 //        descriptionEditText.setText(
@@ -206,11 +223,13 @@ class HomeFragment : Fragment() {
 //        )
         createButton.setOnClickListener {
             val title = titleEditText.text.toString()
-            val description = descriptionEditText.text.toString()
-            if (title.isEmpty() || description.isEmpty()) {
+            val date = dateEditText.text.toString()
+            val category = categoryEditText.text.toString()
+            val priority = priorityEditText.text.toString()
+            if (title.isEmpty() || date.isEmpty() || category.isEmpty() || priority.isEmpty()) {
                 Toast.makeText(context, "Please check the fields", Toast.LENGTH_SHORT).show()
             } else {
-                val updatedNote = Note(note.id, title, description)
+                val updatedNote = Note(note.id, title, date, category, priority)
                 homeViewModel.updateNote(updatedNote)
                 getNotes()
                 mBuilder.dismiss()

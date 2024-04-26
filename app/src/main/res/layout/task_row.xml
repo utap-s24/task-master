@@ -47,16 +47,19 @@
     app:layout_constraintStart_toEndOf="@id/tvDueDate"
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintEnd_toStartOf="@id/checkbox"/>
+    app:layout_constraintEnd_toStartOf="@id/priorityText"/>
 
     <!-- Task Priority CheckBox -->
-    <CheckBox
-        android:id="@+id/checkbox"
-        android:layout_width="wrap_content"
-        android:layout_height="24dp"
-        android:layout_margin="10dp"
-        app:layout_constraintBaseline_toBaselineOf="@id/taskCategory"
+    <TextView
+        android:id="@+id/priorityText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:textSize="17sp"
+        android:gravity="center"
         app:layout_constraintStart_toEndOf="@id/taskCategory"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
 

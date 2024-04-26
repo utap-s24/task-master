@@ -9,7 +9,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Create Note"
+        android:text="Create Task"
         android:textSize="26sp"
         android:textColor="#000000"
         android:textStyle="bold"
