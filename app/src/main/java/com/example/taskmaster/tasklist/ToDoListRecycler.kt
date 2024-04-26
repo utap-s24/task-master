@@ -27,7 +27,15 @@ class ToDoListRecyclerAdapter(
         fun bind(note: Note) {
             with(binding) {
                 tvTitle.text = note.title
-                tvDescription.text = note.description
+                tvDueDate.text = note.date
+                taskCategory.text = note.category
+                if (note.priority == "Yes") {
+                    checkbox.isChecked = true
+                    setPaintFlag(isChecked = true)
+                } else {
+                    checkbox.isChecked = false
+                    setPaintFlag(isChecked = false)
+                }
                 clItem.setOnClickListener {
                     onClickListener.onClick(adapterPosition)
                 }
@@ -60,10 +68,10 @@ class ToDoListRecyclerAdapter(
             with(binding) {
                 if (isChecked) {
                     tvTitle.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
-                    tvDescription.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
+                    taskCategory.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
                 } else {
                     tvTitle.paintFlags = Paint.ANTI_ALIAS_FLAG
-                    tvDescription.paintFlags = Paint.ANTI_ALIAS_FLAG
+                    taskCategory.paintFlags = Paint.ANTI_ALIAS_FLAG
                 }
             }
         }

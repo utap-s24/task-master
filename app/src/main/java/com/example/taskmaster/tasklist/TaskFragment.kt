@@ -166,15 +166,21 @@ class HomeFragment : Fragment() {
 
         val createButton = mDialogView.findViewById<AppCompatImageView>(R.id.btnCreate)
         val titleEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etTitle)
-        val descriptionEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDescription)
+        val categoryEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etCategory)
+        val dateEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDate)
+        val priorityEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etPriority)
+//        val descriptionEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDescription)
 
         createButton.setOnClickListener {
             val title = titleEditText.text.toString()
-            val description = descriptionEditText.text.toString()
-            if (title.isEmpty() || description.isEmpty()) {
+            val date = dateEditText.text.toString()
+            val category = categoryEditText.text.toString()
+            val priority = priorityEditText.text.toString()
+
+            if (title.isEmpty() || category.isEmpty()) {
                 Toast.makeText(context, "Please check the fields", Toast.LENGTH_SHORT).show()
             } else {
-                homeViewModel.createNote(Note(auth.uid, title, description)) // Use the single 'auth' instance
+                homeViewModel.createNote(Note(auth.uid, title, date, category, priority)) // Use the single 'auth' instance
                 getNotes()
                 mBuilder.dismiss()
             }
@@ -194,10 +200,10 @@ class HomeFragment : Fragment() {
             note.title.toString(),
             TextView.BufferType.EDITABLE
         )
-        descriptionEditText.setText(
-            note.description.toString(),
-            TextView.BufferType.EDITABLE
-        )
+//        descriptionEditText.setText(
+//            note.description.toString(),
+//            TextView.BufferType.EDITABLE
+//        )
         createButton.setOnClickListener {
             val title = titleEditText.text.toString()
             val description = descriptionEditText.text.toString()

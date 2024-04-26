@@ -41,16 +41,43 @@
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <EditText
-        android:id="@+id/etDescription"
+        android:id="@+id/etDate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:textColor="#000000"
-        android:hint="Enter your note"
+        android:hint="Enter Date"
         android:padding="8dp"
         android:background="@android:drawable/edit_text"
         app:layout_constraintTop_toBottomOf="@id/etTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
+    <EditText
+    android:id="@+id/etCategory"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:textColor="#000000"
+    android:hint="Enter Category"
+    android:padding="8dp"
+    android:background="@android:drawable/edit_text"
+    app:layout_constraintTop_toBottomOf="@id/etDate"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"/>
+
+    <EditText
+    android:id="@+id/etPriority"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:textColor="#000000"
+    android:hint="Enter Priority: Yes/No"
+    android:padding="8dp"
+    android:background="@android:drawable/edit_text"
+    app:layout_constraintTop_toBottomOf="@id/etCategory"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

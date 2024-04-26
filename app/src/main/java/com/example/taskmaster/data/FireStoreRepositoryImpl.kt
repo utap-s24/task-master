@@ -31,7 +31,8 @@ class FirestoreRepositoryImpl constructor(
                     if (it.isSuccessful) it.result.let { note ->
                         val notesDocuments = note.documents
                         notesDocuments.forEach { noteDocument ->
-                            val note = Note(noteDocument.id, noteDocument.getString("title"), noteDocument.getString("description"))
+                            val note = Note(noteDocument.id, noteDocument.getString("title"), noteDocument.getString("date"),
+                                noteDocument.getString("category"), noteDocument.getString("priority"))
                             noteList.add(note)
                         }
                         def.complete(noteList)
@@ -47,7 +48,10 @@ class FirestoreRepositoryImpl constructor(
                 firebaseFirestore.collection(USERS).document(it).collection(NOTES).document(it1)
                     .update(mapOf(
                         "title" to note.title,
-                        "description" to note.description
+                        "date" to note.date,
+                        "category" to note.category,
+                        "priority" to note.priority
+
                     )).await()
             }
         }
