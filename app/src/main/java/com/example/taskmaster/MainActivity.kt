@@ -11,22 +11,33 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
-    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-
-        // Setting up window insets
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
         // Setting up the BottomNavigationView with NavController
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        findViewById<BottomNavigationView>(R.id.bottom_navigation).setupWithNavController(navController)
+        val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+
+        bottomNavigationView.setupWithNavController(navController)
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_task_list -> {
+                    // Handle "Task List" click
+                    navController.navigate(R.id.taskFragment)
+                    true
+                }
+                R.id.navigation_today -> {
+                    navController.navigate(R.id.todayFragment)
+                    true
+                }
+                R.id.navigation_user -> {
+                    navController.navigate(R.id.userProfileFragment)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 }
 
