@@ -13,6 +13,8 @@ import androidx.navigation.fragment.findNavController
 import com.example.taskmaster.R
 import com.google.firebase.auth.FirebaseAuth
 import com.example.taskmaster.databinding.WelcomeFragmentBinding
+import io.grpc.Context
+import android.content.Context.MODE_PRIVATE
 
 class WelcomeFragment : Fragment() {
 
@@ -43,30 +45,34 @@ class WelcomeFragment : Fragment() {
     }
 
     private fun signIn() {
-
-        val email = binding.etEmail.text.toString()
-        val password = binding.etPassword.text.toString()
+        val email = binding.etEmail.text.toString().trim()
+        val password = binding.etPassword.text.toString().trim()
 
         if (email.isEmpty() || password.isEmpty()){
             Toast.makeText(context, "Please check related fields", Toast.LENGTH_SHORT).show()
-        }
-        else {
+        } else {
             binding.progressBar.isVisible = true
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(requireActivity()) { task ->
+                    binding.progressBar.isVisible = false
                     if (task.isSuccessful) {
+                        // Fetch the display name from Firebase Auth and save it to SharedPreferences
+                        val sharedPreferences = requireContext().getSharedPreferences("myPreferences", MODE_PRIVATE)
+                        val firebaseUsername = auth.currentUser?.displayName ?: "No username found"
+                        sharedPreferences.edit().putString("username", firebaseUsername).apply()
+
                         Toast.makeText(context, "Authentication success.", Toast.LENGTH_SHORT).show()
-                        binding.progressBar.isVisible = false
                         findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
                     } else {
                         Log.e("SignInFailed", task.exception.toString())
                         Toast.makeText(context, "Authentication failed.", Toast.LENGTH_SHORT).show()
-                        binding.etEmail.setText("")
-                        binding.etPassword.setText("")
+                        binding.etEmail.text?.clear()
+                        binding.etPassword.text?.clear()
                     }
                 }
         }
-
     }
+
+
 
 }

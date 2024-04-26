@@ -15,4 +15,5 @@
     <string name="title" />
     <string name="enter_your_note" />
     <string name="update_note" />
+    <string name="username_format">Username: %s</string>
 </resources>

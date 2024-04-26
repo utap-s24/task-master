@@ -15,6 +15,8 @@ import com.google.firebase.auth.FirebaseAuth
 import javax.inject.Inject
 import com.example.taskmaster.databinding.FragmentRegisterBinding
 import android.content.Context
+import com.google.firebase.auth.ktx.userProfileChangeRequest
+
 
 class RegisterFragment : Fragment() {
 
@@ -45,10 +47,9 @@ class RegisterFragment : Fragment() {
     }
 
     private fun createNewAccount() {
-
-        val email = binding.etEmail.text.toString()
-        val password = binding.etPassword.text.toString()
-        val username = binding.etUsername.text.toString()
+        val email = binding.etEmail.text.toString().trim()
+        val password = binding.etPassword.text.toString().trim()
+        val username = binding.etUsername.text.toString().trim()
 
         if (email.isEmpty() || password.isEmpty() || username.isEmpty()) {
             Toast.makeText(context, "Please check related fields", Toast.LENGTH_SHORT).show()
@@ -57,6 +58,17 @@ class RegisterFragment : Fragment() {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(requireActivity()) { task ->
                     if (task.isSuccessful) {
+                        // Set the display name in Firebase Auth
+                        val user = auth.currentUser
+                        val profileUpdates = userProfileChangeRequest {
+                            displayName = username
+                        }
+                        user?.updateProfile(profileUpdates)?.addOnCompleteListener { updateTask ->
+                            if (updateTask.isSuccessful) {
+                                Log.d("RegisterFragment", "User profile updated.")
+                            }
+                        }
+
                         // Save username in SharedPreferences
                         val sharedPreferences = requireActivity().getSharedPreferences("myPreferences", Context.MODE_PRIVATE)
                         sharedPreferences.edit().putString("username", username).apply()
@@ -66,12 +78,14 @@ class RegisterFragment : Fragment() {
                         findNavController().navigate(R.id.action_registerFragment_to_welcomeFragment)
                     } else {
                         Log.e("RegistrationFailed", task.exception.toString())
-                        Toast.makeText(context, "Registration failed.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Registration failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                         binding.etUsername.text?.clear()
                         binding.etEmail.text?.clear()
                         binding.etPassword.text?.clear()
                     }
+                    binding.progressBar.isVisible = false
                 }
         }
     }
+
 }
