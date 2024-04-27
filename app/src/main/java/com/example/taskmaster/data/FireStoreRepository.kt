@@ -12,5 +12,4 @@ interface FirestoreRepository {
     suspend fun getFilterTodayNotes(priority: Boolean, category: String, date: String): ArrayList<Note>
     suspend fun updateNote(note: Note)
     suspend fun deleteNote(docId: String)
-    suspend fun getCount(): ArrayList<Int>
 }
