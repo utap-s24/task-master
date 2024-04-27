@@ -212,7 +212,7 @@ class TodayFragment : Fragment() {
             notesList,
             object : OnClickListener {
                 override fun onClick(position: Int) {
-                    //showUpdateDialog(notesList[position])
+                    showUpdateDialog(notesList[position])
                 }
             })
         binding.rvToDoList.adapter = toDoAdapter
