@@ -70,7 +70,8 @@ class HomeFragment : Fragment() {
 
     // Use the factory to create the ViewModel
     private val homeViewModel by lazy { ViewModelProvider(this, factory).get(HomeViewModel::class.java) }
-    private val spinnerItems = arrayOf("None", "Work", "Home", "School")
+    private val categoryItems = arrayOf("None", "Work", "Home", "School")
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -107,20 +108,17 @@ class HomeFragment : Fragment() {
 
     private fun applyFilters() {
         val priority = binding.priorityCheckbox.isChecked
-        var categoryIndex = binding.categorySpinner.selectedItemPosition
+        val categoryIndex = binding.categorySpinner.selectedItemPosition
 
-        println("priority: " + priority)
-        println("category: " + spinnerItems[categoryIndex])
-
-        getFilterNotes(priority, spinnerItems[categoryIndex])
+        getFilterNotes(priority, categoryItems[categoryIndex])
     }
 
     private fun initSpinners() {
         // Define your array of items
 
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, spinnerItems)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.categorySpinner.adapter = adapter
+        val categoryAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categoryItems)
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.categorySpinner.adapter = categoryAdapter
     }
 
     private fun initLogoutDialog() {
@@ -231,7 +229,7 @@ class HomeFragment : Fragment() {
         val dateEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDate)
         val priorityCheckBox = mDialogView.findViewById<AppCompatCheckBox>(R.id.etPriority)
 
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, spinnerItems)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categoryItems)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         categorySpinner.adapter = adapter
 
@@ -244,12 +242,10 @@ class HomeFragment : Fragment() {
             }
         }
 
-
-
         createButton.setOnClickListener {
             val title = titleEditText.text.toString()
             val date = dateEditText.text.toString()
-            val category = spinnerItems[categorySpinner.selectedItemPosition]
+            val category = categoryItems[categorySpinner.selectedItemPosition]
             var priority = "No"
             if (priorityCheckBox.isChecked) {
                 priority = "Yes"
@@ -286,9 +282,14 @@ class HomeFragment : Fragment() {
 
         val createButton = mDialogView.findViewById<AppCompatImageView>(R.id.btnCreate)
         val titleEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etTitle)
-        val categoryEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etCategory)
+        val categorySpinner = mDialogView.findViewById<AppCompatSpinner>(R.id.etCategory)
         val dateEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDate)
-        val priorityEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etPriority)
+        val priorityCheckBox = mDialogView.findViewById<AppCompatCheckBox>(R.id.etPriority)
+
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categoryItems)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = adapter
+
 
         titleEditText.setText(
             note.title.toString(),
@@ -300,15 +301,13 @@ class HomeFragment : Fragment() {
             TextView.BufferType.EDITABLE
         )
 
-        categoryEditText.setText(
-            note.category.toString(),
-            TextView.BufferType.EDITABLE
-        )
+        // Set priority CheckBox
+        priorityCheckBox.isChecked = note.priority == "Yes"
 
-        priorityEditText.setText(
-            note.priority.toString(),
-            TextView.BufferType.EDITABLE
-        )
+        val catPos = categoryItems.indexOf(note.category)
+        if (catPos != -1) {
+            categorySpinner.setSelection(catPos)
+        }
 
         dateEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -322,8 +321,11 @@ class HomeFragment : Fragment() {
         createButton.setOnClickListener {
             val title = titleEditText.text.toString()
             val date = dateEditText.text.toString()
-            val category = categoryEditText.text.toString()
-            val priority = priorityEditText.text.toString()
+            val category = categoryItems[categorySpinner.selectedItemPosition]
+            var priority = "No"
+            if (priorityCheckBox.isChecked) {
+                priority = "Yes"
+            }
             if (title.isEmpty() || date.isEmpty() || category.isEmpty() || priority.isEmpty()) {
                 Toast.makeText(context, "Please check the fields", Toast.LENGTH_SHORT).show()
             } else {

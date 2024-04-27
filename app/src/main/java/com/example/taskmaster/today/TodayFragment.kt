@@ -1,5 +1,6 @@
 package com.example.taskmaster.today
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
@@ -10,6 +11,13 @@ import androidx.core.view.isNotEmpty
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.widget.AppCompatCheckBox
+import androidx.appcompat.widget.AppCompatEditText
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.appcompat.widget.AppCompatSpinner
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -32,6 +40,7 @@ import com.example.taskmaster.tasklist.TodayViewModel
 import com.example.taskmaster.tasklist.TodayViewModelFactory
 import com.example.taskmaster.usecase.DeleteNoteUseCase
 import com.example.taskmaster.usecase.GetFilterNotesUseCase
+import com.example.taskmaster.usecase.GetFilterTodayNotesUseCase
 import com.example.taskmaster.usecase.GetTodaysNotesUseCase
 import com.example.taskmaster.usecase.UpdateNoteUseCase
 import com.google.firebase.auth.FirebaseAuth
@@ -47,6 +56,7 @@ import java.util.Date;
 import java.util.Locale;
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.text.ParseException
 
 
 class TodayFragment : Fragment() {
@@ -64,14 +74,17 @@ class TodayFragment : Fragment() {
     private val getNotesUseCase = GetTodaysNotesUseCase(firestoreRepositoryImpl)
     private val updateNoteUseCase = UpdateNoteUseCase(firestoreRepositoryImpl)
     private val deleteNoteUseCase = DeleteNoteUseCase(firestoreRepositoryImpl)
-    private val getFilterNotesUseCase = GetFilterNotesUseCase(firestoreRepositoryImpl)
+    private val getFilterTodayNotesUseCase = GetFilterTodayNotesUseCase(firestoreRepositoryImpl)
 
     // Create the ViewModel factory with your use cases
     private val factory = TodayViewModelFactory(getNotesUseCase, updateNoteUseCase,
-        deleteNoteUseCase, getFilterNotesUseCase)
+        deleteNoteUseCase, getFilterTodayNotesUseCase)
 
     // Use the factory to create the ViewModel
     private val todayViewModel by lazy { ViewModelProvider(this, factory).get(TodayViewModel::class.java) }
+
+    private val categoryItems = arrayOf("None", "Work", "Home", "School")
+
     private val weatherApiBaseUrl = "https://api.open-meteo.com/"
 
     // Retrofit service instance
@@ -92,23 +105,14 @@ class TodayFragment : Fragment() {
 
         binding.tvWelcome.text =
             "Welcome ${SharedPreferences(requireContext()).getUsernameString()}!"
+        fetchWeatherData()
         initListeners()
         getNotes()
-        fetchWeatherData()
+        onBackPressed()
         initSpinners()
-//        onBackPressed()
-
         return binding.root
     }
 
-    private fun initSpinners() {
-        // Define your array of items
-        val spinnerItems = arrayOf("None", "Work", "Home", "School")
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, spinnerItems)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.categorySpinner.adapter = adapter
-
-    }
 
     private fun initListeners() {
         with(binding) {
@@ -120,16 +124,26 @@ class TodayFragment : Fragment() {
             }
             goButton.setOnClickListener {
                 // call a function to apply the filters
-                val priority = priorityCheckbox.isChecked
-                var category: String? = ""
-                if (categorySpinner.isNotEmpty()) {
-                    category = categorySpinner.selectedItem?.toString()
-                }
-                println("priority: " + priority)
-                println("catgeory: " + category)
+                applyFilters()
             }
 
         }
+    }
+
+    private fun applyFilters() {
+        val priority = binding.priorityCheckbox.isChecked
+        val categoryIndex = binding.categorySpinner.selectedItemPosition
+
+        getFilterNotes(priority, categoryItems[categoryIndex])
+    }
+
+    private fun initSpinners() {
+        // Define your array of items
+
+        val categoryAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categoryItems)
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.categorySpinner.adapter = categoryAdapter
+
     }
 
     private fun getNotes() {
@@ -160,6 +174,36 @@ class TodayFragment : Fragment() {
             }
         }
     }
+
+    private fun getFilterNotes(priority: Boolean, category: String) {
+        todayViewModel.getFilterNotes(priority, category, getCurrentDate())
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                todayViewModel.notesState.collect { notesResult ->
+                    when (notesResult) {
+                        is RequestState.Success -> {
+                            binding.progressBar.isVisible = false
+                            Log.e("Success", notesResult.data.toString()+ notesResult.data.indices)
+                            notesList = notesResult.data
+                            initRecycler()
+                            binding.swipeRefreshLayout.isRefreshing = false
+                        }
+                        is RequestState.Error -> {
+                            binding.progressBar.isVisible = false
+                            Log.e("Error", notesResult.exception.toString())
+                        }
+                        is RequestState.Loading -> {
+                            binding.progressBar.isVisible = true
+                            Log.e("Loading", "Loading")
+                        }
+                        null -> TODO()
+                    }
+                }
+            }
+        }
+    }
+
+
     private fun initRecycler() {
 
         val toDoAdapter = ToDoListRecyclerAdapter(
@@ -198,15 +242,98 @@ class TodayFragment : Fragment() {
         alertDialog.show()
     }
 
+    @SuppressLint("MissingInflatedId")
+    private fun showUpdateDialog(note: Note) {
+        val mDialogView = LayoutInflater.from(context).inflate(R.layout.update_note_dialog, null)
+        val mBuilder = AlertDialog.Builder(context).setView(mDialogView).show()
+
+        val createButton = mDialogView.findViewById<AppCompatImageView>(R.id.btnCreate)
+        val titleEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etTitle)
+        val categorySpinner = mDialogView.findViewById<AppCompatSpinner>(R.id.etCategory)
+        val dateEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDate)
+        val priorityCheckBox = mDialogView.findViewById<AppCompatCheckBox>(R.id.etPriority)
+
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, categoryItems)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = adapter
+
+
+        titleEditText.setText(
+            note.title.toString(),
+            TextView.BufferType.EDITABLE
+        )
+
+        dateEditText.setText(
+            note.date.toString(),
+            TextView.BufferType.EDITABLE
+        )
+
+        // Set priority CheckBox
+        priorityCheckBox.isChecked = note.priority == "Yes"
+
+        val catPos = categoryItems.indexOf(note.category)
+        if (catPos != -1) {
+            categorySpinner.setSelection(catPos)
+        }
+
+        dateEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val enteredDate = dateEditText.text.toString()
+                if (!isValidDate(enteredDate)) {
+                    dateEditText.error = "Invalid date format. Please enter YYYY-MM-DD."
+                }
+            }
+        }
+
+        createButton.setOnClickListener {
+            val title = titleEditText.text.toString()
+            val date = dateEditText.text.toString()
+            val category = categoryItems[categorySpinner.selectedItemPosition]
+            var priority = "No"
+            if (priorityCheckBox.isChecked) {
+                priority = "Yes"
+            }
+            if (title.isEmpty() || date.isEmpty() || category.isEmpty() || priority.isEmpty()) {
+                Toast.makeText(context, "Please check the fields", Toast.LENGTH_SHORT).show()
+            } else {
+                val updatedNote = Note(note.id, title, date, category, priority)
+                todayViewModel.updateNote(updatedNote)
+                getNotes()
+                mBuilder.dismiss()
+            }
+        }
+    }
+
+
+    private fun isValidDate(date: String): Boolean {
+        // Implement your date validation logic here using libraries like SimpleDateFormat
+        // This is a simplified example, you might want to consider libraries like LocalDate
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+        dateFormat.isLenient = false
+        try {
+            dateFormat.parse(date)
+            return true
+        } catch (e: ParseException) {
+            return false
+        }
+    }
+
+    private fun onBackPressed() {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                activity?.finish()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+    }
+
     private fun getCurrentDate(): String {
         val calendar = Calendar.getInstance()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         println("date: " + dateFormat.format(calendar.time))
         return dateFormat.format(calendar.time)
     }
-    private fun isSameDay(date1: String, date2: String): Boolean {
-        return date1 == date2
-    }
+
     private fun fetchWeatherData() {
         val sharedPref = requireActivity().getSharedPreferences(
             getString(R.string.preference_file_key), Context.MODE_PRIVATE
@@ -301,13 +428,4 @@ class TodayFragment : Fragment() {
         @SerializedName("temperature_2m") val temperature_2m: Double,
         @SerializedName("weather_code") val weather_code: Int
     )
-
-//    private fun createAdapterFromResource(arrayResource: Int):
-//            ArrayAdapter<CharSequence> {
-//        val adapter = ArrayAdapter.createFromResource(this,
-//            arrayResource,
-//            android.R.layout.simple_spinner_item)
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-//        return adapter
-//    }
 }

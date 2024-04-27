@@ -13,15 +13,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import android.Manifest
 import android.content.Context
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import androidx.core.view.MenuProvider
 
 class MainActivity : AppCompatActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var navController: NavController
+
     private var lastKnownLocation: Location? = null
     // ActivityResultLauncher for the location permission request
     private val locationPermissionRequest = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
@@ -76,6 +83,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        initMenu()
+
     }
     private fun checkLocationPermissionAndProceed() {
         when {
@@ -109,6 +118,25 @@ class MainActivity : AppCompatActivity() {
 
             } ?: Toast.makeText(this, "No location detected. Make sure location is enabled on the device.", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun initMenu() {
+        addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.task_menu, menu)
+            }
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                // This could be replaced with return false, but I wanted to show
+                // the usual structure for a menu item
+                return when (menuItem.itemId) {
+                    R.id.action_settings -> {
+                        navController.navigate(R.id.action_settings)
+                        true
+                    }
+                    else -> false
+                }
+            }
+        })
     }
 
 }

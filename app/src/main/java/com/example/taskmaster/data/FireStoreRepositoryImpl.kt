@@ -27,6 +27,7 @@ class FirestoreRepositoryImpl constructor(
         val def = CompletableDeferred<ArrayList<Note>>()
         auth.uid?.let { uid ->
             firebaseFirestore.collection(USERS).document(uid).collection(NOTES)
+                .orderBy("date", Query.Direction.ASCENDING)
                 .get()
                 .addOnCompleteListener {
                     if (it.isSuccessful) it.result.let { note ->
@@ -80,6 +81,7 @@ class FirestoreRepositoryImpl constructor(
             .collection(USERS)
             .document(uid)
             .collection(NOTES)
+//            .orderBy("date", Query.Direction.ASCENDING)
 
         if (priority) {
             notesRef = notesRef.whereEqualTo("priority", "Yes")
@@ -90,24 +92,72 @@ class FirestoreRepositoryImpl constructor(
         }
 
         notesRef.get()
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                task.result?.let { querySnapshot ->
-                    querySnapshot.forEach { documentSnapshot ->
-                        val note = Note(
-                            documentSnapshot.id,
-                            documentSnapshot.getString("title"),
-                            documentSnapshot.getString("date"),
-                            documentSnapshot.getString("category"),
-                            documentSnapshot.getString("priority")
-                        )
-                        filterList.add(note)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    task.result?.let { querySnapshot ->
+                        querySnapshot.forEach { documentSnapshot ->
+                            val note = Note(
+                                documentSnapshot.id,
+                                documentSnapshot.getString("title"),
+                                documentSnapshot.getString("date"),
+                                documentSnapshot.getString("category"),
+                                documentSnapshot.getString("priority")
+                            )
+                            filterList.add(note)
+                        }
+                        deferred.complete(filterList)
+                        println("List: " + filterList)
                     }
-                    deferred.complete(filterList)
-                    println("List: " + filterList)
                 }
             }
+
+        return deferred.await()
+    }
+
+    override suspend fun getFilterTodayNotes(priority: Boolean, category: String, date: String): ArrayList<Note> {
+        val filterList: ArrayList<Note> = arrayListOf()
+        val deferred = CompletableDeferred<ArrayList<Note>>()
+
+        // Handle potential null UID scenario
+        if (auth.uid == null) {
+            // Log a warning or throw an exception based on your app's logic
+            return deferred.await() // Return empty list or throw if necessary
         }
+
+        val uid = auth.uid!! // Safe access after null check
+
+        var notesRef: Query = FirebaseFirestore.getInstance()
+            .collection(USERS)
+            .document(uid)
+            .collection(NOTES)
+            .whereEqualTo("date", date)
+
+        if (priority) {
+            notesRef = notesRef.whereEqualTo("priority", "Yes")
+        }
+
+        if (category != "None") {
+            notesRef = notesRef.whereEqualTo("category", category)
+        }
+
+        notesRef.get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    task.result?.let { querySnapshot ->
+                        querySnapshot.forEach { documentSnapshot ->
+                            val note = Note(
+                                documentSnapshot.id,
+                                documentSnapshot.getString("title"),
+                                documentSnapshot.getString("date"),
+                                documentSnapshot.getString("category"),
+                                documentSnapshot.getString("priority")
+                            )
+                            filterList.add(note)
+                        }
+                        deferred.complete(filterList)
+                    }
+                }
+            }
 
         return deferred.await()
     }
