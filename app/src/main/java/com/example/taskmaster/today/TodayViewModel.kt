@@ -4,9 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.taskmaster.data.Note
 import com.example.taskmaster.data.RequestState
-import com.example.taskmaster.usecase.CreateNoteUseCase
 import com.example.taskmaster.usecase.DeleteNoteUseCase
-import com.example.taskmaster.usecase.GetFilterNotesUseCase
 import com.example.taskmaster.usecase.GetFilterTodayNotesUseCase
 import com.example.taskmaster.usecase.GetTodaysNotesUseCase
 import com.example.taskmaster.usecase.UpdateNoteUseCase

@@ -2,7 +2,6 @@ package com.example.taskmaster.tasklist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.taskmaster.usecase.GetFilterNotesUseCase
 import com.example.taskmaster.usecase.DeleteNoteUseCase
 import com.example.taskmaster.usecase.GetFilterTodayNotesUseCase
 import com.example.taskmaster.usecase.GetTodaysNotesUseCase

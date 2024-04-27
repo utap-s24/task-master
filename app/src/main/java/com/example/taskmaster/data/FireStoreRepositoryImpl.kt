@@ -2,6 +2,7 @@ package com.example.taskmaster.data
 
 import com.example.taskmaster.data.Note
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.CompletableDeferred
@@ -64,6 +65,51 @@ class FirestoreRepositoryImpl constructor(
          }
          return def.await()
     }
+
+    override suspend fun getCount(): ArrayList<Int> {
+        val countList: ArrayList<Int> = arrayListOf()
+        val def = CompletableDeferred<ArrayList<Int>>()
+        // Handle potential null UID scenario
+        if (auth.uid == null) {
+            // Log a warning or throw an exception based on your app's logic
+            return def.await() // Return empty list or throw if necessary
+        }
+
+        val uid = auth.uid!! // Safe access after null check
+
+        var query = FirebaseFirestore.getInstance()
+            .collection(USERS)
+            .document(uid)
+            .collection(NOTES)
+            .whereEqualTo("category", "Work")
+
+        var countQuery = query.count()
+        val workCount = countQuery.get(AggregateSource.SERVER).result.count.toInt()
+
+        query = FirebaseFirestore.getInstance()
+            .collection(USERS)
+            .document(uid)
+            .collection(NOTES)
+            .whereEqualTo("category", "Home")
+
+        countQuery = query.count()
+        val homeCount = countQuery.get(AggregateSource.SERVER).result.count.toInt()
+
+        query = FirebaseFirestore.getInstance()
+            .collection(USERS)
+            .document(uid)
+            .collection(NOTES)
+            .whereEqualTo("category", "School")
+
+        countQuery = query.count()
+        val schoolCount = countQuery.get(AggregateSource.SERVER).result.count.toInt()
+        countList.add(workCount)
+        countList.add(homeCount)
+        countList.add(schoolCount)
+        def.complete(countList)
+        return def.await()
+    }
+
 
     override suspend fun getFilterNotes(priority: Boolean, category: String): ArrayList<Note> {
         val filterList: ArrayList<Note> = arrayListOf()
