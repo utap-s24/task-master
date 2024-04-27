@@ -7,6 +7,7 @@ import com.example.taskmaster.data.RequestState
 import com.example.taskmaster.usecase.CreateNoteUseCase
 import com.example.taskmaster.usecase.DeleteNoteUseCase
 import com.example.taskmaster.usecase.GetNotesUseCase
+import com.example.taskmaster.usecase.GetFilterNotesUseCase
 import com.example.taskmaster.usecase.UpdateNoteUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,8 @@ class HomeViewModel(
     private val createNoteUseCase: CreateNoteUseCase,
     private val getNotesUseCase: GetNotesUseCase,
     private val updateNoteUseCase: UpdateNoteUseCase,
-    private val deleteNoteUseCase: DeleteNoteUseCase
+    private val deleteNoteUseCase: DeleteNoteUseCase,
+    private val getFilterNotesUseCase: GetFilterNotesUseCase
 ) : ViewModel() {
 
     private val _notesState = MutableStateFlow<RequestState<ArrayList<Note>>?>(null)
@@ -43,4 +45,11 @@ class HomeViewModel(
         deleteNoteUseCase.invoke(docId).collect {
         }
     }
+
+    fun getFilterNotes(priority: Boolean, category: String) = viewModelScope.launch {
+        getFilterNotesUseCase.invoke(priority, category).collect {
+            _notesState.value = it
+        }
+    }
+
 }

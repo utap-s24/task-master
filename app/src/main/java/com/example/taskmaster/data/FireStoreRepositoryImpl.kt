@@ -3,6 +3,7 @@ package com.example.taskmaster.data
 import com.example.taskmaster.data.Note
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.tasks.await
 
@@ -62,6 +63,55 @@ class FirestoreRepositoryImpl constructor(
          }
          return def.await()
     }
+
+    override suspend fun getFilterNotes(priority: Boolean, category: String): ArrayList<Note> {
+        val filterList: ArrayList<Note> = arrayListOf()
+        val deferred = CompletableDeferred<ArrayList<Note>>()
+
+        // Handle potential null UID scenario
+        if (auth.uid == null) {
+            // Log a warning or throw an exception based on your app's logic
+            return deferred.await() // Return empty list or throw if necessary
+        }
+
+        val uid = auth.uid!! // Safe access after null check
+
+        var notesRef: Query = FirebaseFirestore.getInstance()
+            .collection(USERS)
+            .document(uid)
+            .collection(NOTES)
+
+        if (priority) {
+            notesRef = notesRef.whereEqualTo("priority", "Yes")
+        }
+
+        if (category != "None") {
+            notesRef = notesRef.whereEqualTo("category", category)
+        }
+
+        notesRef.get()
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                task.result?.let { querySnapshot ->
+                    querySnapshot.forEach { documentSnapshot ->
+                        val note = Note(
+                            documentSnapshot.id,
+                            documentSnapshot.getString("title"),
+                            documentSnapshot.getString("date"),
+                            documentSnapshot.getString("category"),
+                            documentSnapshot.getString("priority")
+                        )
+                        filterList.add(note)
+                    }
+                    deferred.complete(filterList)
+                    println("List: " + filterList)
+                }
+            }
+        }
+
+        return deferred.await()
+    }
+
 
     override suspend fun updateNote(note: Note) {
         auth.uid?.let {

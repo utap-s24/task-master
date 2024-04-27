@@ -7,11 +7,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.widget.AppCompatCheckBox
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.appcompat.widget.AppCompatSpinner
+import androidx.core.view.isNotEmpty
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -37,7 +41,10 @@ import com.example.taskmaster.usecase.CreateNoteUseCase
 import com.example.taskmaster.usecase.DeleteNoteUseCase
 import com.example.taskmaster.usecase.GetNotesUseCase
 import com.example.taskmaster.usecase.UpdateNoteUseCase
+import com.example.taskmaster.usecase.GetFilterNotesUseCase
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.ParseException
+import java.text.SimpleDateFormat
 
 class HomeFragment : Fragment() {
 
@@ -55,13 +62,15 @@ class HomeFragment : Fragment() {
     private val getNotesUseCase = GetNotesUseCase(firestoreRepositoryImpl)
     private val updateNoteUseCase = UpdateNoteUseCase(firestoreRepositoryImpl)
     private val deleteNoteUseCase = DeleteNoteUseCase(firestoreRepositoryImpl)
+    private val getFilterNotesUseCase = GetFilterNotesUseCase(firestoreRepositoryImpl)
 
     // Create the ViewModel factory with your use cases
-    private val factory = HomeViewModelFactory(createNoteUseCase, getNotesUseCase, updateNoteUseCase, deleteNoteUseCase)
+    private val factory = HomeViewModelFactory(createNoteUseCase, getNotesUseCase, updateNoteUseCase,
+        deleteNoteUseCase, getFilterNotesUseCase)
 
     // Use the factory to create the ViewModel
     private val homeViewModel by lazy { ViewModelProvider(this, factory).get(HomeViewModel::class.java) }
-
+    private val spinnerItems = arrayOf("None", "Work", "Home", "School")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -73,7 +82,7 @@ class HomeFragment : Fragment() {
         initListeners()
         getNotes()
         onBackPressed()
-
+        initSpinners()
         return binding.root
     }
 
@@ -88,7 +97,30 @@ class HomeFragment : Fragment() {
             swipeRefreshLayout.setOnRefreshListener {
                 getNotes()
             }
+            goButton.setOnClickListener {
+                // call a function to apply the filters
+                applyFilters()
+            }
+
         }
+    }
+
+    private fun applyFilters() {
+        val priority = binding.priorityCheckbox.isChecked
+        var categoryIndex = binding.categorySpinner.selectedItemPosition
+
+        println("priority: " + priority)
+        println("category: " + spinnerItems[categoryIndex])
+
+        getFilterNotes(priority, spinnerItems[categoryIndex])
+    }
+
+    private fun initSpinners() {
+        // Define your array of items
+
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, spinnerItems)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.categorySpinner.adapter = adapter
     }
 
     private fun initLogoutDialog() {
@@ -133,6 +165,35 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun getFilterNotes(priority: Boolean, category: String) {
+        homeViewModel.getFilterNotes(priority, category)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                homeViewModel.notesState.collect { notesResult ->
+                    when (notesResult) {
+                        is RequestState.Success -> {
+                            binding.progressBar.isVisible = false
+                            Log.e("Success", notesResult.data.toString()+ notesResult.data.indices)
+                            notesList = notesResult.data
+                            initRecycler()
+                            binding.swipeRefreshLayout.isRefreshing = false
+                        }
+                        is RequestState.Error -> {
+                            binding.progressBar.isVisible = false
+                            Log.e("Error", notesResult.exception.toString())
+                        }
+                        is RequestState.Loading -> {
+                            binding.progressBar.isVisible = true
+                            Log.e("Loading", "Loading")
+                        }
+                        null -> TODO()
+                    }
+                }
+            }
+        }
+    }
+
+
     private fun initRecycler() {
 
         val toDoAdapter = ToDoListRecyclerAdapter(
@@ -166,16 +227,34 @@ class HomeFragment : Fragment() {
 
         val createButton = mDialogView.findViewById<AppCompatImageView>(R.id.btnCreate)
         val titleEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etTitle)
-        val categoryEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etCategory)
+        val categorySpinner = mDialogView.findViewById<AppCompatSpinner>(R.id.etCategory)
         val dateEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDate)
-        val priorityEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etPriority)
-//        val descriptionEditText = mDialogView.findViewById<AppCompatEditText>(R.id.etDescription)
+        val priorityCheckBox = mDialogView.findViewById<AppCompatCheckBox>(R.id.etPriority)
+
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, spinnerItems)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        categorySpinner.adapter = adapter
+
+        dateEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val enteredDate = dateEditText.text.toString()
+                if (!isValidDate(enteredDate)) {
+                    dateEditText.error = "Invalid date format. Please enter YYYY-MM-DD."
+                }
+            }
+        }
+
+
 
         createButton.setOnClickListener {
             val title = titleEditText.text.toString()
             val date = dateEditText.text.toString()
-            val category = categoryEditText.text.toString()
-            val priority = priorityEditText.text.toString()
+            val category = spinnerItems[categorySpinner.selectedItemPosition]
+            var priority = "No"
+            if (priorityCheckBox.isChecked) {
+                priority = "Yes"
+            }
+//            val priority = priorityEditText.text.toString()
 
             if (title.isEmpty() || date.isEmpty() || category.isEmpty() || priority.isEmpty()) {
                 Toast.makeText(context, "Please check the fields", Toast.LENGTH_SHORT).show()
@@ -184,6 +263,19 @@ class HomeFragment : Fragment() {
                 getNotes()
                 mBuilder.dismiss()
             }
+        }
+    }
+
+    private fun isValidDate(date: String): Boolean {
+        // Implement your date validation logic here using libraries like SimpleDateFormat
+        // This is a simplified example, you might want to consider libraries like LocalDate
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd")
+        dateFormat.isLenient = false
+        try {
+            dateFormat.parse(date)
+            return true
+        } catch (e: ParseException) {
+            return false
         }
     }
 
@@ -217,6 +309,16 @@ class HomeFragment : Fragment() {
             note.priority.toString(),
             TextView.BufferType.EDITABLE
         )
+
+        dateEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val enteredDate = dateEditText.text.toString()
+                if (!isValidDate(enteredDate)) {
+                    dateEditText.error = "Invalid date format. Please enter YYYY-MM-DD."
+                }
+            }
+        }
+
         createButton.setOnClickListener {
             val title = titleEditText.text.toString()
             val date = dateEditText.text.toString()

@@ -6,7 +6,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import androidx.core.view.isNotEmpty
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -27,8 +30,8 @@ import com.example.taskmaster.databinding.FragmentTodayBinding
 import com.example.taskmaster.tasklist.ToDoListRecyclerAdapter
 import com.example.taskmaster.tasklist.TodayViewModel
 import com.example.taskmaster.tasklist.TodayViewModelFactory
-import com.example.taskmaster.usecase.CreateNoteUseCase
 import com.example.taskmaster.usecase.DeleteNoteUseCase
+import com.example.taskmaster.usecase.GetFilterNotesUseCase
 import com.example.taskmaster.usecase.GetTodaysNotesUseCase
 import com.example.taskmaster.usecase.UpdateNoteUseCase
 import com.google.firebase.auth.FirebaseAuth
@@ -58,14 +61,14 @@ class TodayFragment : Fragment() {
     private val firestoreRepositoryImpl = FirestoreRepositoryImpl(FirebaseFirestore.getInstance(), auth)
 
     // Now use the firestoreRepositoryImpl to create your use cases
-    private val createNoteUseCase = CreateNoteUseCase(firestoreRepositoryImpl)
     private val getNotesUseCase = GetTodaysNotesUseCase(firestoreRepositoryImpl)
     private val updateNoteUseCase = UpdateNoteUseCase(firestoreRepositoryImpl)
     private val deleteNoteUseCase = DeleteNoteUseCase(firestoreRepositoryImpl)
-
+    private val getFilterNotesUseCase = GetFilterNotesUseCase(firestoreRepositoryImpl)
 
     // Create the ViewModel factory with your use cases
-    private val factory = TodayViewModelFactory(createNoteUseCase, getNotesUseCase, updateNoteUseCase, deleteNoteUseCase)
+    private val factory = TodayViewModelFactory(getNotesUseCase, updateNoteUseCase,
+        deleteNoteUseCase, getFilterNotesUseCase)
 
     // Use the factory to create the ViewModel
     private val todayViewModel by lazy { ViewModelProvider(this, factory).get(TodayViewModel::class.java) }
@@ -92,9 +95,19 @@ class TodayFragment : Fragment() {
         initListeners()
         getNotes()
         fetchWeatherData()
+        initSpinners()
 //        onBackPressed()
 
         return binding.root
+    }
+
+    private fun initSpinners() {
+        // Define your array of items
+        val spinnerItems = arrayOf("None", "Work", "Home", "School")
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, spinnerItems)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.categorySpinner.adapter = adapter
+
     }
 
     private fun initListeners() {
@@ -105,6 +118,17 @@ class TodayFragment : Fragment() {
             swipeRefreshLayout.setOnRefreshListener {
                 getNotes()
             }
+            goButton.setOnClickListener {
+                // call a function to apply the filters
+                val priority = priorityCheckbox.isChecked
+                var category: String? = ""
+                if (categorySpinner.isNotEmpty()) {
+                    category = categorySpinner.selectedItem?.toString()
+                }
+                println("priority: " + priority)
+                println("catgeory: " + category)
+            }
+
         }
     }
 
@@ -177,6 +201,7 @@ class TodayFragment : Fragment() {
     private fun getCurrentDate(): String {
         val calendar = Calendar.getInstance()
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        println("date: " + dateFormat.format(calendar.time))
         return dateFormat.format(calendar.time)
     }
     private fun isSameDay(date1: String, date2: String): Boolean {
@@ -276,4 +301,13 @@ class TodayFragment : Fragment() {
         @SerializedName("temperature_2m") val temperature_2m: Double,
         @SerializedName("weather_code") val weather_code: Int
     )
+
+//    private fun createAdapterFromResource(arrayResource: Int):
+//            ArrayAdapter<CharSequence> {
+//        val adapter = ArrayAdapter.createFromResource(this,
+//            arrayResource,
+//            android.R.layout.simple_spinner_item)
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+//        return adapter
+//    }
 }
